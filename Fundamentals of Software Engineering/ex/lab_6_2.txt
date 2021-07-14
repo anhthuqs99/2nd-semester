@@ -1,0 +1,123 @@
+#include <stdio.h>
+#include <string.h>
+
+// max length of string
+#define MAX_LEN_STR 256
+// max length of word
+#define MAX_LEN_WORD 16
+
+// program sucessful complete
+#define OK 0
+//Error I/O
+#define ERR_IO -1
+// Error range
+#define ERR_RANGE -2
+
+
+// check is charater c spaces or punctuation marks (“,”, “;”, “:”, “-”, “.”, “!”, “?”)
+int is_separator(char c)
+{
+    if (c == ' ' || c == '\n' || c == ',' || c == ';' || c == ':' || c == '-' || c == '.' || c == '!' || c == '?')
+        return 1;
+    return 0;
+}
+/* get begining position and ending of word
+ * str: string
+ * ibegin: begining posotion of word
+ * iend: ending position of word
+ */
+int get_word_pos(const char *str, int *ibegin, int *iend)
+{
+    int i = *ibegin;
+    while (str[i] && is_separator(str[i]))
+        i++;
+    if (str[i])
+    {
+        *ibegin = i;
+        while (str[i] && !is_separator(str[i]))
+            i++;
+        *iend = i - 1;
+        return 1;
+    }
+
+    return 0;
+}
+// check length of the words in string str greating than MAX_LEN_WORD or not
+int check_len_word_in_string(const char *str)
+{
+    int ibegin = 0, iend;
+    while (get_word_pos(str, &ibegin, &iend))
+    {
+        if (iend - ibegin + 1 > MAX_LEN_WORD)
+            return 0;
+        ibegin = iend + 1;
+    }
+    return 1;
+}
+/* input 2 string from screen
+ * str1 : first string
+ * str2: second string
+ */
+int input_string(char *str1, char *str2)
+{
+    printf("input first string : ");
+    if (!fgets(str1, MAX_LEN_STR + 1, stdin) || !check_len_word_in_string(str1))
+        return ERR_IO;
+    if (strlen(str1) <= 1 || strlen(str1) > MAX_LEN_STR + 1)
+        return ERR_RANGE;
+    printf("Input second string: ");
+    if (!fgets(str2, MAX_LEN_STR + 1, stdin) || !check_len_word_in_string(str2))
+        return ERR_IO;
+    if (strlen(str2) <= 1 || strlen(str2) > MAX_LEN_STR + 1)
+        return ERR_RANGE;
+    return OK;
+}
+// check is word c in string str
+int count_number_word(const char *str, const char *c)
+{
+    int ibegin = 0, iend, count = 0;
+    char word[MAX_LEN_WORD];
+    while (get_word_pos(str, &ibegin, &iend))
+    {
+        memset(word, '\0', MAX_LEN_WORD);
+        strncpy(word, str + ibegin, iend - ibegin + 1);
+        if (strcmp(word, c) == 0)
+            count++;
+        ibegin = iend + 1;
+    }
+    return count;
+}
+// find and print on screen word in string str1 not in string str2
+void find_word(const char *str1, char *str2)
+{
+    int ibegin = 0, iend;
+    char word[MAX_LEN_WORD];
+    while (get_word_pos(str1, &ibegin, &iend))
+    {
+        memset(word, '\0', MAX_LEN_WORD);
+        strncpy(word, str1 + ibegin, iend - ibegin + 1);
+        if (count_number_word(str1, word) + count_number_word(str2, word) == 1)
+            printf("%s ", word);
+        ibegin = iend + 1;
+    }
+}
+int main(void)
+{
+    char str1[MAX_LEN_STR];
+    char str2[MAX_LEN_STR];
+
+    int rc = input_string(str1, str2);
+
+    if (rc == OK)
+    {
+        find_word(str1, str2);
+        find_word(str2, str1);
+        printf("\n");
+    }
+    else if (rc == ERR_IO)
+        printf("Error I/O\n");
+    else
+        printf("Error range\n");
+
+    return rc;
+}
